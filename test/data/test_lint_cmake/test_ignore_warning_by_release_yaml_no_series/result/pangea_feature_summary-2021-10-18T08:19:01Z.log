@@ -58,7 +58,28 @@ Need to get 112 kB of archives.
 After this operation, 0 B of additional disk space will be used.
 Get:1 https://archive.neon.kde.org/dev/unstable xenial/main amd64 pkg-kde-tools all 0.15.20~ubuntu4+p16.04+git20170917.1812 [112 kB]
 Fetched 112 kB in 0s (552 kB/s)
-(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 58180 files and directories currently installed.)
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 58180 files and directories currently installed.)
 Preparing to unpack .../pkg-kde-tools_0.15.20~ubuntu4+p16.04+git20170917.1812_all.deb ...
 Unpacking pkg-kde-tools (0.15.20~ubuntu4+p16.04+git20170917.1812) over (0.15.20~ubuntu4) ...
 Processing triggers for man-db (2.7.5-1) ...
@@ -80,7 +101,7 @@ Maintainer: Debian Pbuilder Team <pbuilder-maint@lists.alioth.debian.org>
 Description: Dummy package to satisfy dependencies with aptitude - created by pbuilder
  This package was created automatically by pbuilder to satisfy the
  build-dependencies of the package being currently built.
-Depends: cmake (>= 2.8.12), debhelper (>= 9), extra-cmake-modules (>= 5.28.0~), gperf, pkg-kde-tools (>= 0.15.15ubuntu1~), qtbase5-dev (>= 5.5.0~), qttools5-dev (>= 5.4), qttools5-dev-tools (>= 5.4)
+Depends: cmake (>= 2.8.12), debhelper (>= 10), extra-cmake-modules (>= 5.28.0~), gperf, pkg-kde-tools (>= 0.15.15ubuntu1~), qtbase5-dev (>= 5.5.0~), qttools5-dev (>= 5.4), qttools5-dev-tools (>= 5.4)
 dpkg-deb: building package 'pbuilder-satisfydepends-dummy' in '/tmp/satisfydepends-aptitude/pbuilder-satisfydepends-dummy.deb'.
 Selecting previously unselected package pbuilder-satisfydepends-dummy.
 (Reading database ... 58180 files and directories currently installed.)
@@ -219,9 +240,33 @@ Get: 76 https://archive.neon.kde.org/dev/unstable xenial/main amd64 qtbase5-dev 
 Get: 77 https://archive.neon.kde.org/dev/unstable xenial/main amd64 qttools5-dev-tools amd64 5.9.1-0neon+16.04+xenial+build19 [2,085 kB]
 Get: 78 https://archive.neon.kde.org/dev/unstable xenial/main amd64 qttools5-dev amd64 5.9.1-0neon+16.04+xenial+build19 [193 kB]
 Fetched 33.2 MB in 1s (24.9 MB/s)
-Extracting templates from packages: 38%Extracting templates from packages: 76%Extracting templates from packages: 100%
+
+Extracting templates from packages: 38%
+Extracting templates from packages: 76%
+Extracting templates from packages: 100%
 Selecting previously unselected package libmtdev1:amd64.
-(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 58180 files and directories currently installed.)
+(Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 58180 files and directories currently installed.)
 Preparing to unpack .../libmtdev1_1.1.5-1ubuntu2_amd64.deb ...
 Unpacking libmtdev1:amd64 (1.1.5-1ubuntu2) ...
 Selecting previously unselected package libgstreamer1.0-0:amd64.

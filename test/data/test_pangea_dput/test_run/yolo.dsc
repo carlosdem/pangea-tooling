@@ -9,7 +9,7 @@ Standards-Version: 3.9.6
 Vcs-Browser: http://anonscm.debian.org/cgit/pkg-kde/applications/gpgmepp.git
 Vcs-Git: git://anonscm.debian.org/pkg-kde/applications/gpgmepp.git
 Testsuite: autopkgtest
-Build-Depends: cmake (>= 2.8.12~), debhelper (>= 9), extra-cmake-modules (>= 5.12.0~), libboost-dev, libgpgme11-dev, pkg-kde-tools (>> 0.15.15), qtbase5-dev
+Build-Depends: cmake (>= 2.8.12~), debhelper (>= 10), extra-cmake-modules (>= 5.12.0~), libboost-dev, libgpgme11-dev, pkg-kde-tools (>> 0.15.15), qtbase5-dev
 Package-List:
  gpgmepp-dbg deb debug extra arch=any
  libkf5gpgmepp-dev deb libdevel optional arch=any

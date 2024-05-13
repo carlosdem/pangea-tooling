@@ -5,7 +5,7 @@ Architecture: all
 Version: 1.0+p9+git20161205.1813
 Maintainer: Rohan Garg <rohan@garg.io>
 Standards-Version: 3.7.2
-Build-Depends: debhelper (>= 9)
+Build-Depends: debhelper (>= 10)
 Package-List:
  test deb admin optional arch=all
 Checksums-Sha1:

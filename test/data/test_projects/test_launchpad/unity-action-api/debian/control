@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
 XSBC-Original-Maintainer: Antti Kaijanmäki <antti.kaijanmaki@canonical.com>
 Build-Depends: cmake,
-               debhelper (>= 9),
+               debhelper (>= 10),
                pkg-config,
                libhud2-dev,
                qt5-default,

@@ -70,7 +70,7 @@ Maintainer: Debian Pbuilder Team <pbuilder-maint@lists.alioth.debian.org>
 Description: Dummy package to satisfy dependencies with aptitude - created by pbuilder
  This package was created automatically by pbuilder to satisfy the
  build-dependencies of the package being currently built.
-Depends: cmake, debhelper (>= 9), extra-cmake-modules, libblkid-dev, libkf5auth-dev, libkf5coreaddons-dev, libkf5i18n-dev, libkf5widgetsaddons-dev, libqca-qt5-2-dev, pkg-config, pkg-kde-tools
+Depends: cmake, debhelper (>= 10), extra-cmake-modules, libblkid-dev, libkf5auth-dev, libkf5coreaddons-dev, libkf5i18n-dev, libkf5widgetsaddons-dev, libqca-qt5-2-dev, pkg-config, pkg-kde-tools
 dpkg-deb: building package 'pbuilder-satisfydepends-dummy' in '/tmp/satisfydepends-aptitude/pbuilder-satisfydepends-dummy.deb'.
 Selecting previously unselected package pbuilder-satisfydepends-dummy.
 (Reading database ... 82407 files and directories currently installed.)

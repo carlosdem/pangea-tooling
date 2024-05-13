@@ -10,7 +10,7 @@ Standards-Version: 3.9.6
 Vcs-Browser: http://anonscm.debian.org/cgit/pkg-kde/frameworks/ki18n.git
 Vcs-Git: git://anonscm.debian.org/pkg-kde/frameworks/ki18n.git
 Testsuite: autopkgtest
-Build-Depends: cmake (>= 2.8.12), debhelper (>= 9), extra-cmake-modules (>= 5.18.0~), pkg-kde-tools (>= 0.15.15ubuntu1~), python-all, qtbase5-dev (>= 5.4), qtdeclarative5-dev, qtscript5-dev (>= 5.4)
+Build-Depends: cmake (>= 2.8.12), debhelper (>= 10), extra-cmake-modules (>= 5.18.0~), pkg-kde-tools (>= 0.15.15ubuntu1~), python-all, qtbase5-dev (>= 5.4), qtdeclarative5-dev, qtscript5-dev (>= 5.4)
 Package-List:
  libkf5i18n-data deb libs optional arch=all
  libkf5i18n-dev deb libdevel optional arch=any

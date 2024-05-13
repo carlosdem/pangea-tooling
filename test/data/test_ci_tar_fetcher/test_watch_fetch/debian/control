@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Debian/Kubuntu Qt/KDE Maintainers <debian-qt-kde@lists.debian.org>
 Uploaders: Sune Vuorela <sune@debian.org>, Maximiliano Curia <maxy@debian.org>
 Build-Depends: cmake,
-               debhelper (>= 9),
+               debhelper (>= 10),
                extra-cmake-modules (>= 1.3.0),
                kdoctools-dev,
                kio-dev,

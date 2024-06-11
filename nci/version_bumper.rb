@@ -12,7 +12,7 @@ require 'deep_merge'
 require 'tty/command'
 require 'yaml'
 
-# Iterates all plasma repos and adjusts the packaging for the new plasma version #.
+# Iterates all kf6 repos and adjusts the packaging for the new kf6 version #.
 class Mutagen
   attr_reader :cmd
 
@@ -23,14 +23,14 @@ class Mutagen
 
 
   def run
-    if File.exist?('plasma')
-      Dir.chdir('plasma')
+    if File.exist?('kf6')
+      Dir.chdir('kf6')
     else
-      Dir.mkdir('plasma')
-      Dir.chdir('plasma')
+      Dir.mkdir('kf6')
+      Dir.chdir('kf6')
 
       repos = ProjectsFactory::Neon.ls
-      KDEProjectsComponent.plasma_jobs.uniq.each do |project|
+      KDEProjectsComponent.kf6_jobs.uniq.each do |project|
         repo = repos.find { |x| x.end_with?("/#{project}") }
         p [project, repo]
         cmd.run('git', 'clone', "git@invent.kde.org:neon/#{repo}")
@@ -44,12 +44,12 @@ class Mutagen
       Dir.chdir(dir) do
         cmd.run('git', 'fetch', 'origin')
         cmd.run('git', 'reset', '--hard')
-        cmd.run('git', 'checkout', 'Neon/unstable')
-        cmd.run('git', 'reset', '--hard', 'origin/Neon/unstable')
+        cmd.run('git', 'checkout', 'Neon/release_jammy')
+        cmd.run('git', 'reset', '--hard', 'origin/Neon/release')
 
-        cmd.run('dch', '--force-bad-version', '--force-distribution', '--distribution', 'jammy', '--newversion', '4:5.91.90-0neon', 'new release')
+        cmd.run('dch', '--force-bad-version', '--force-distribution', '--distribution', 'jammy', '--newversion', '6.3.0-0neon', 'new release')
 
-        cmd.run('git', 'commit', '--all', '--message', 'bump plasma version to 5.91.90') unless cmd.run!('git', 'diff', '--quiet').success?
+        cmd.run('git', 'commit', '--all', '--message', 'new release 6.3.0') unless cmd.run!('git', 'diff', '--quiet').success?
       end
     end
   end

@@ -28,28 +28,39 @@ class Mutagen
     else
       Dir.mkdir('kf6')
       Dir.chdir('kf6')
+     end
 
-      repos = ProjectsFactory::Neon.ls
-      KDEProjectsComponent.kf6_jobs.uniq.each do |project|
-        repo = repos.find { |x| x.end_with?("/#{project}") }
+    repos = ProjectsFactory::Neon.ls
+    KDEProjectsComponent.kf6_jobs.uniq.each do |project|
+      repo = repos.find { |x| x.end_with?("/#{project}") }
+
         p [project, repo]
-        cmd.run('git', 'clone', "git@invent.kde.org:neon/#{repo}")
-      end
-    end
+          if File.exist?("#{project}")
+            next
+          else
+            cmd.run('git', 'clone', "git@invent.kde.org:neon/#{repo}")
+          end
+        rescue
+          next
+        end
+    #end
 
     Dir.glob('*') do |dir|
       next unless File.directory?(dir)
 
       p dir
       Dir.chdir(dir) do
+        if cmd.run('git', 'log', '-1', '--format=%s') == 'new release 6.3.0'
+          break
+        else
         cmd.run('git', 'fetch', 'origin')
-        cmd.run('git', 'reset', '--hard')
+        #cmd.run('git', 'reset', '--hard')
         cmd.run('git', 'checkout', 'Neon/release_jammy')
-        cmd.run('git', 'reset', '--hard', 'origin/Neon/release')
-
+        #cmd.run('git', 'reset', '--hard', 'origin/Neon/release')
         cmd.run('dch', '--force-bad-version', '--force-distribution', '--distribution', 'jammy', '--newversion', '6.3.0-0neon', 'new release')
-
         cmd.run('git', 'commit', '--all', '--message', 'new release 6.3.0') unless cmd.run!('git', 'diff', '--quiet').success?
+        cmd.run('git', 'push')
+        end
       end
     end
   end

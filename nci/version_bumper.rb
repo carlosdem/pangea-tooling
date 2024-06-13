@@ -12,7 +12,7 @@ require 'deep_merge'
 require 'tty/command'
 require 'yaml'
 
-# Iterates all kf6 repos and adjusts the packaging for the new kf6 version #.
+# Iterates all plasma repos and adjusts the packaging for the new plasma version #.
 class Mutagen
   attr_reader :cmd
 
@@ -23,15 +23,15 @@ class Mutagen
 
 
   def run
-    if File.exist?('kf6')
-      Dir.chdir('kf6')
+    if File.exist?('plasma')
+      Dir.chdir('plasma')
     else
-      Dir.mkdir('kf6')
-      Dir.chdir('kf6')
+      Dir.mkdir('plasma')
+      Dir.chdir('plasma')
      end
 
     repos = ProjectsFactory::Neon.ls
-    KDEProjectsComponent.kf6_jobs.uniq.each do |project|
+    KDEProjectsComponent.plasma_jobs.uniq.each do |project|
       repo = repos.find { |x| x.end_with?("/#{project}") }
 
         p [project, repo]
@@ -50,17 +50,21 @@ class Mutagen
 
       p dir
       Dir.chdir(dir) do
-        if cmd.run('git', 'log', '-1', '--format=%s') == 'new release 6.3.0'
-          break
-        else
-        cmd.run('git', 'fetch', 'origin')
+        cmd.run('git', 'checkout', 'Neon/release')
+        cmd.run('dch', '--force-distribution', '--distribution', 'noble', 'noble is the series')
+        cmd.run('git', 'commit', '--all', '--message', 'noble is distributon') unless cmd.run!('git', 'diff', '--quiet').success?
+        #cmd.run('git', 'push')
+      #  if cmd.run('git', 'log', '-1', '--format=%s') == 'new release 6.3.0'
+      #    break
+      #  else
+      #  cmd.run('git', 'fetch', 'origin')
         #cmd.run('git', 'reset', '--hard')
-        cmd.run('git', 'checkout', 'Neon/release_jammy')
+      #  cmd.run('git', 'checkout', 'Neon/release_jammy')
         #cmd.run('git', 'reset', '--hard', 'origin/Neon/release')
-        cmd.run('dch', '--force-bad-version', '--force-distribution', '--distribution', 'jammy', '--newversion', '6.3.0-0neon', 'new release')
-        cmd.run('git', 'commit', '--all', '--message', 'new release 6.3.0') unless cmd.run!('git', 'diff', '--quiet').success?
-        cmd.run('git', 'push')
-        end
+      #  cmd.run('dch', '--force-bad-version', '--force-distribution', '--distribution', 'jammy', '--newversion', '6.3.0-0neon', 'new release')
+      #  cmd.run('git', 'commit', '--all', '--message', 'new release 6.3.0') unless cmd.run!('git', 'diff', '--quiet').success?
+      #  cmd.run('git', 'push')
+      #  end
       end
     end
   end

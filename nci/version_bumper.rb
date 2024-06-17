@@ -12,7 +12,7 @@ require 'deep_merge'
 require 'tty/command'
 require 'yaml'
 
-# Iterates all plasma repos and adjusts the packaging for the new plasma version #.
+# Iterates all frameworks repos and adjusts the packaging for the new frameworks version #.
 class Mutagen
   attr_reader :cmd
 
@@ -23,26 +23,26 @@ class Mutagen
 
 
   def run
-    if File.exist?('plasma')
-      Dir.chdir('plasma')
+    if File.exist?('frameworks')
+      Dir.chdir('frameworks')
     else
-      Dir.mkdir('plasma')
-      Dir.chdir('plasma')
+      Dir.mkdir('frameworks')
+      Dir.chdir('frameworks')
      end
 
-    repos = ProjectsFactory::Neon.ls
-    KDEProjectsComponent.plasma_jobs.uniq.each do |project|
-      repo = repos.find { |x| x.end_with?("/#{project}") }
+    #repos = ProjectsFactory::Neon.ls
+    #KDEProjectsComponent.frameworks_jobs.uniq.each do |project|
+    #  repo = repos.find { |x| x.end_with?("/#{project}") }
 
-        p [project, repo]
-          if File.exist?("#{project}")
-            next
-          else
-            cmd.run('git', 'clone', "git@invent.kde.org:neon/#{repo}")
-          end
-        rescue
-          next
-        end
+    #    p [project, repo]
+    #      if File.exist?("#{project}")
+    #        next
+    #      else
+    #        cmd.run('git', 'clone', "git@invent.kde.org:neon/#{repo}")
+    #      end
+    #    rescue
+    #      next
+    #   end
     #end
 
     Dir.glob('*') do |dir|
@@ -51,9 +51,9 @@ class Mutagen
       p dir
       Dir.chdir(dir) do
         cmd.run('git', 'checkout', 'Neon/release')
-        cmd.run('dch', '--force-distribution', '--distribution', 'noble', 'noble is the series')
-        cmd.run('git', 'commit', '--all', '--message', 'noble is distributon') unless cmd.run!('git', 'diff', '--quiet').success?
-        #cmd.run('git', 'push')
+        cmd.run('dch', '--force-bad-version', '--force-distribution', '--distribution', 'noble', '--newversion', '5.116.0-1xneon',  'noble is the new series')
+        cmd.run('git', 'commit', '--all', '--message', 'noble is the distributon') unless cmd.run!('git', 'diff', '--quiet').success?
+        cmd.run('git', 'push')
       #  if cmd.run('git', 'log', '-1', '--format=%s') == 'new release 6.3.0'
       #    break
       #  else

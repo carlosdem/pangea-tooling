@@ -22,50 +22,6 @@ Dir.glob(File.expand_path('jenkins-jobs/nci/*.rb', __dir__)).each do |file|
   require file
 end
 
-# FIXME: this really shouldn't be in here. need some snap job builder or something
-EXCLUDE_SNAPS =  KDEProjectsComponent.frameworks_jobs + KDEProjectsComponent.plasma_jobs +
-  %w[backports-focal clazy colord-kde gammaray icecc icemon latte-dock libqaccessiblity
-  ofono pyqt sip5 attica baloo bluedevil bluez-qt breeze drkonqi
-  eventviews gpgmepp grantleetheme incidenceeditor
-  kaccounts-integration kcalcore kcalutils kcron kde-dev-scripts
-  kdepim-addons kdepim-apps-libs kdgantt2 kholidays
-  kidentitymanagement kimap kldap kmailtransport kmbox kmime
-  kontactinterface kpimtextedit ktnef libgravatar libkdepim libkleo
-  libkmahjongg libkomparediff2 libksieve mailcommon mailimporter
-  messagelib pimcommon signon-kwallet-extension syndication akonadi
-  akonadi-calendar akonadi-search calendarsupport kalarmcal kblog
-  kcontacts kleopatra kdepim kdepim-runtime kdepimlibs baloo-widgets
-  ffmpegthumbs dolphin-plugins akonadi-mime akonadi-notes analitza
-  kamera kdeedu-data kdegraphics-thumbnailers kdenetwork-filesharing
-  kdesdk-thumbnailers khelpcenter kio-extras kqtquickcharts kuser
-  libkdcraw libkdegames libkeduvocdocument libkexiv2 libkface
-  libkgeomap libkipi libksane poxml akonadi-contacts print-manager
-  marble khangman kdevplatform sddm kdevelop-python kdevelop-php
-  phonon-backend-vlc phonon-backend-gstreamer ktp-common-internals
-  kaccounts-providers kdevelop-pg-qt kwalletmanager kdialog svgpart
-  libkcddb libkcompactdisc mbox-importer akonadi-calendar-tools
-  akonadi-import-wizard audiocd-kio grantlee-editor kdegraphics-mobipocket
-  kmail-account-wizard konqueror libkcddb libkcompactdisc pim-data-exporter
-  pim-sieve-editor pim-storage-service-manager kdegraphics-mobipocket
-  akonadiconsole akregator kdav kmail knotes blogilo libkgapi kgpg
-  kapptemplate kcachegrind kde-dev-utils kdesdk-kioslaves korganizer
-  kfind kfloppy kaddressbook konsole krfb ksystemlog ofono-qt indi libappimage
-  fwupd iio-sensor-proxy kcolorpicker kimageannotator libaqbanking libgusb
-  libgwenhywfar mlt pipewire qxmpp xdg-dbus-proxy alkimia calamares exiv2
-  grantlee kdb kdiagram kpmcore kproperty kpublictransport kreport kuserfeedback
-  libktorrent libmediawiki libqaccessiblity muon polkit-qt-1 pulseaudio-qt qapt qca2
-  qtav qtcurve telepathy-qt wacomtablet fcitx-qt5 kpeoplevcard kup pyqt5 qtkeychain
-  sip4 kio-gdrive kipi-plugins ktp-accounts-kcm ktp-approver ktp-auth-handler ktp-call-ui
-  ktp-contact-list ktp-contact-runner ktp-desktop-applets ktp-filetransfer-handler
-  ktp-kded-module ktp-send-file ktp-text-ui libkscreen libksysguard markdownpart plasma-browser-integration plasma-desktop plasma-discover
-  plasma-integration plasma-nano plasma-nm plasma-pa plasma-sdk plasma-thunderbolt plasma-vault plasma-wayland-protocols
-  plasma-workspace-wallpapers plasma-workspace plymouth-kcm polkit-kde-agent-1
-  powerdevil xdg-desktop-portal-kde black-hole-solver kcgroups kio-fuse kio-stash kmarkdownwebview libetebase libkvkontakte
-  libquotient plasma-disks plasma-firewall plasma-pass plasma-systemmonitor
-  qqc2-breeze-style stellarsolver symmy debug-installer atcore kwrited
-  docker-neon ubiquity-slideshow
-].freeze
-
 # Updates Jenkins Projects
 class ProjectUpdater < Jenkins::ProjectUpdater
   def initialize
@@ -147,7 +103,9 @@ class ProjectUpdater < Jenkins::ProjectUpdater
         all_mergers << enqueue(NCIMergerJob.new(project,
                                                 dependees: dependees,
                                                 branches: branches))
+      # end of projects.each
       end
+    # end of nci.types
     end
 
     watchers = {}
@@ -163,24 +121,12 @@ class ProjectUpdater < Jenkins::ProjectUpdater
                  " We'll not create a job for #{distribution}."
             next
           end
-          # Fairly akward special casing because snapcrafting is a bit
-          # special-interest.
-          # Also forced onto bionic, snapcraft porting requires special care
-          # and is detatched from deb-tech more or less.
-          if %w[release].include?(type) && # project.snapcraft &&  # we allow snapcraft.yaml in project git repo now so can not tell from packaging if it is to be added
-             !EXCLUDE_SNAPS.include?(project.name) && distribution == 'focal'
-            # We use stable in jenkins to build the tar releases because that way we get the right KDE git repo
-            unless project.upstream_scm.nil?
-              next unless (project.upstream_scm.type == 'uscan' or project.upstream_scm.type == 'git')
-                  enqueue(SnapcraftJob.new(project,
-                                           distribution: distribution, type: type))
-            end
-          end
+
           # enable ARM for all releases
           project_architectures = if type == 'unstable' ||
-                                     type == 'stable' ||
-                                     type == 'release' ||
-                                     type == 'experimental'
+                                      type == 'stable' ||
+                                      type == 'release' ||
+                                      type == 'experimental'
                                     NCI.all_architectures
                                   else
                                     NCI.architectures
@@ -221,8 +167,7 @@ class ProjectUpdater < Jenkins::ProjectUpdater
           next if watchers.key?(watcher.job_name) # Already have one.
 
           watchers[watcher.job_name] = watcher
-        end
-        # end of projects
+        end # end of type_projects[type].each
 
         next if type == NCI.qt_stage_type
 
@@ -257,11 +202,9 @@ class ProjectUpdater < Jenkins::ProjectUpdater
           enqueue(MGMTRepoTestVersionsUpgradeJob.new(type: type,
                                                      distribution: distribution))
         end
-      end
-      # end of type
-      next # FIXME
+      end # end of NCI.types.each
 
-      # ISOs
+      # amd 64 ISO's && docker's
       NCI.architectures.each do |architecture|
         standard_args = {
           imagename: 'neon',
@@ -271,70 +214,84 @@ class ProjectUpdater < Jenkins::ProjectUpdater
         }.freeze
         is_future = distribution == NCI.future_series
 
-        # unstable edition stuffs
+        # unstable edition iso stuff's
         dev_unstable_isoargs = standard_args.merge(
           type: 'unstable',
           neonarchive: 'unstable',
           cronjob: 'H H * * 0'
         )
+        # unstable edition docker stuff's
         dev_unstable_dockerargs = dev_unstable_isoargs.merge(
           is_future: is_future
         )
         enqueue(NeonIsoJob.new(**dev_unstable_isoargs))
         enqueue(NeonDockerJob.new(**dev_unstable_dockerargs))
-        enqueue(MGMTTorrentISOJob.new(**standard_args.merge(type: 'unstable')))
 
         # Only make unstable ISO for the next series while in early mode.
         next if distribution == NCI.future_series && NCI.future_is_early
 
-        # development unstable edition stuffs
+        # ko unstable edition iso stuff's
+        ko_dev_unstable_isoargs = standard_args.merge(
+          type: 'ko',
+          neonarchive: 'unstable',
+          cronjob: 'H H * * 5',
+          metapackage: 'neon-desktop-ko'
+        )
+        enqueue(NeonIsoJob.new(**ko_dev_unstable_isoargs))
+
+        # mobile unstable edition iso stuff's
+        mobile_dev_unstable_isoargs = standard_args.merge(
+          type: 'mobile',
+          neonarchive: 'unstable',
+          cronjob: 'H H * * 0',
+          metapackage: 'plasma-phone'
+        )
+        enqueue(NeonIsoJob.new(**mobile_dev_unstable_isoargs))
+
+        # developer unstable edition iso stuff's
         dev_unstable_dev_isoargs = standard_args.merge(
           type: 'developer',
           neonarchive: 'unstable',
           cronjob: 'H H * * 1'
         )
+        # unstable developer edition docker stuff's
         dev_unstable_dev_dockerargs = dev_unstable_dev_isoargs.merge(
           is_future: is_future
         )
         enqueue(NeonIsoJob.new(**dev_unstable_dev_isoargs))
         enqueue(NeonDockerJob.new(**dev_unstable_dev_dockerargs))
-        enqueue(MGMTTorrentISOJob.new(**standard_args.merge(type: 'developer')))
 
-        # stable edition stuffs
+        # stable edition iso stuff's
         dev_stable_isoargs = standard_args.merge(
           type: 'stable',
           neonarchive: 'stable',
           cronjob: 'H H * * 2'
         )
-        dev_stable_dockerargs = dev_stable_isoargs.merge(
-          is_future: is_future
-        )
         enqueue(NeonIsoJob.new(**dev_stable_isoargs))
 
-        # testing edition stuffs
+        # testing edition iso stuff's
         dev_testing_isoargs = standard_args.merge(
           type: 'testing',
           neonarchive: 'testing',
           cronjob: 'H H * * 2'
         )
+        # testing edition docker stuff's
         dev_testing_dockerargs = dev_testing_isoargs.merge(
           is_future: is_future
         )
         enqueue(NeonIsoJob.new(**dev_testing_isoargs))
         enqueue(NeonDockerJob.new(**dev_testing_dockerargs))
-        enqueue(MGMTTorrentISOJob.new(**standard_args.merge(type: 'testing')))
 
-        # ko testing edition stuffs
-        ko_dev_testing_release_isoargs = standard_args.merge(
+        # ko testing edition iso stuff's
+        ko_dev_testing_isoargs = standard_args.merge(
           type: 'ko',
           neonarchive: 'testing',
           cronjob: 'H H * * 5',
           metapackage: 'neon-desktop-ko'
         )
-        enqueue(NeonIsoJob.new(**ko_dev_testing_release_isoargs))
-        enqueue(MGMTTorrentISOJob.new(**standard_args.merge(type: 'ko')))
+        enqueue(NeonIsoJob.new(**ko_dev_testing_isoargs))
 
-        # mobile testing edition stuffs
+        # mobile testing edition iso stuff's
         mobile_dev_testing_isoargs = standard_args.merge(
           type: 'mobile',
           neonarchive: 'testing',
@@ -342,9 +299,8 @@ class ProjectUpdater < Jenkins::ProjectUpdater
           metapackage: 'plasma-phone'
         )
         enqueue(NeonIsoJob.new(**mobile_dev_testing_isoargs))
-        enqueue(MGMTTorrentISOJob.new(**standard_args.merge(type: 'mobile')))
 
-        # release edition stuffs
+        # release edition iso stuff's
         release_release_isoargs = standard_args.merge(
           type: 'release',
           neonarchive: 'release',
@@ -352,7 +308,7 @@ class ProjectUpdater < Jenkins::ProjectUpdater
         )
         enqueue(NeonIsoJob.new(**release_release_isoargs))
 
-        # user edition stuffs
+        # user edition iso stuff's
         user_release_isoargs = standard_args.merge(
           type: 'user',
           neonarchive: is_future ? 'release' : 'user',
@@ -363,9 +319,8 @@ class ProjectUpdater < Jenkins::ProjectUpdater
         )
         enqueue(NeonIsoJob.new(**user_release_isoargs))
         enqueue(NeonDockerJob.new(**user_release_dockerargs))
-        enqueue(MGMTTorrentISOJob.new(**standard_args.merge(type: 'user')))
 
-        # ko user edition stuffs
+        # ko user edition iso stuff's
         ko_user_release_isoargs = standard_args.merge(
           type: 'ko',
           neonarchive: 'user',
@@ -373,9 +328,8 @@ class ProjectUpdater < Jenkins::ProjectUpdater
           metapackage: 'neon-desktop-ko'
         )
         enqueue(NeonIsoJob.new(**ko_user_release_isoargs))
-        enqueue(MGMTTorrentISOJob.new(**standard_args.merge(type: 'ko')))
 
-        # mobile user edition stuffs
+        # mobile user edition iso stuff's
         mobile_user_release_isoargs = standard_args.merge(
           type: 'mobile',
           neonarchive: 'user',
@@ -383,10 +337,9 @@ class ProjectUpdater < Jenkins::ProjectUpdater
           metapackage: 'plasma-phone'
         )
         enqueue(NeonIsoJob.new(**mobile_user_release_isoargs))
-        enqueue(MGMTTorrentISOJob.new(**standard_args.merge(type: 'mobile')))
-      end
+      end # endo of NCI.architectures.each
 
-# arm64 ISOs
+      # arm64 ISO's, docker's and img's
       NCI.extra_architectures.each do |architecture|
         standard_args = {
           imagename: 'neon-arm64',
@@ -396,93 +349,42 @@ class ProjectUpdater < Jenkins::ProjectUpdater
         }.freeze
         is_future = distribution == NCI.future_series
 
+        # only arm64 unstable until we can actually produce an iso
         dev_unstable_isoargs = standard_args.merge(
           type: 'unstable',
           neonarchive: 'unstable',
           cronjob: 'H H * * 0'
         )
         enqueue(NeonIsoJob.new(**dev_unstable_isoargs))
-        enqueue(MGMTTorrentISOJob.new(**standard_args.merge(type: 'unstable')))
 
-        # Only make unstable ISO for the next series while in early mode.
-        next if distribution == NCI.future_series && NCI.future_is_early
+        # old bitrotted arm images
+        dev_unstable_imgargs = { type: 'devedition-gitunstable',
+                                distribution: distribution,
+                                architecture: 'arm64',
+                                metapackage: 'neon-desktop',
+                                imagename: 'neon',
+                                neonarchive: 'dev/unstable',
+                                cronjob: 'H H * * 0' }
+        enqueue(NeonImgJob.new(**dev_unstable_imgargs))
 
-        dev_unstable_dev_isoargs = standard_args.merge(
-          type: 'developer',
-          neonarchive: 'unstable',
-          cronjob: 'H H * * 1'
-        )
-        enqueue(NeonIsoJob.new(**dev_unstable_dev_isoargs))
-        enqueue(MGMTTorrentISOJob.new(**standard_args.merge(type: 'developer')))
-
-        dev_stable_isoargs = standard_args.merge(
-          type: 'developer',
-          neonarchive: 'testing',
-          cronjob: 'H H * * 2'
-        )
-        enqueue(NeonIsoJob.new(**dev_stable_isoargs))
-        enqueue(MGMTTorrentISOJob.new(**standard_args.merge(type: 'testing')))
-
-        user_release_isoargs = standard_args.merge(
-          type: 'user',
-          neonarchive: is_future ? 'release' : 'user',
-          cronjob: 'H H * * 4'
-        )
-        enqueue(NeonIsoJob.new(**user_release_isoargs))
-        enqueue(MGMTTorrentISOJob.new(**standard_args.merge(type: 'user')))
-
-        ko_user_release_isoargs = standard_args.merge(
-          type: 'ko',
-          neonarchive: 'testing',
-          cronjob: 'H H * * 5',
-          metapackage: 'neon-desktop-ko'
-        )
-        enqueue(NeonIsoJob.new(**ko_user_release_isoargs))
-        enqueue(MGMTTorrentISOJob.new(**standard_args.merge(type: 'ko')))
-
-        # mobile ustable edition stuffs
-        mobile_isoargs = standard_args.merge(
-          type: 'mobile',
-          neonarchive: 'unstable',
-          cronjob: 'H H * * 0',
-          metapackage: 'plasma-phone'
-        )
-        enqueue(NeonIsoJob.new(**mobile_isoargs))
-        enqueue(MGMTTorrentISOJob.new(**standard_args.merge(type: 'mobile')))
-      end
-
-      dev_unstable_imgargs = { type: 'devedition-gitunstable',
-                               distribution: distribution,
-                               architecture: 'arm64',
-                               metapackage: 'neon-desktop',
-                               imagename: 'neon',
-                               neonarchive: 'dev/unstable',
-                               cronjob: 'H H * * 0' }
-      enqueue(NeonImgJob.new(**dev_unstable_imgargs))
-      user_imgargs = { type: 'useredition',
-                       distribution: distribution,
-                       architecture: 'arm64',
-                       metapackage: 'neon-desktop',
-                       imagename: 'neon',
-                       neonarchive: 'user',
-                       cronjob: 'H H * * 0'}
-      enqueue(NeonImgJob.new(**user_imgargs))
+        user_imgargs = { type: 'useredition',
+                        distribution: distribution,
+                        architecture: 'arm64',
+                        metapackage: 'neon-desktop',
+                        imagename: 'neon',
+                        neonarchive: 'user',
+                        cronjob: 'H H * * 0'}
+        enqueue(NeonImgJob.new(**user_imgargs))
+      end # end of NCI.extra_architectures.each
 
       enqueue(MGMTRepoDivert.new(target: "unstable_#{distribution}"))
-      enqueue(MGMTRepoDivert.new(target: "stable_#{distribution}"))
-
       enqueue(MGMTRepoUndoDivert.new(target: "unstable_#{distribution}"))
-      enqueue(MGMTRepoUndoDivert.new(target: "stable_#{distribution}"))
-
       enqueue(MGMTAppstreamUbuntuFilter.new(dist: distribution))
-    end
-    # end of distribution
+    end # end of NCI.series.each_key
 
-    enqueue(MGMTRepoMetadataCheck.new(dependees: []))
-
+    ## META jobs
     # Watchers is a hash, only grab the actual jobs and enqueue them.
     watchers.each_value { |w| enqueue(w) }
-
     merger = enqueue(MetaMergeJob.new(downstream_jobs: all_mergers))
     progenitor = enqueue(
       MgmtProgenitorJob.new(downstream_jobs: all_meta_builds,
@@ -490,31 +392,31 @@ class ProjectUpdater < Jenkins::ProjectUpdater
     )
     enqueue(MGMTPauseIntegrationJob.new(downstreams: [progenitor]))
     enqueue(MGMTAptlyJob.new(dependees: [progenitor]))
-    enqueue(MGMTWorkspaceCleanerJob.new(dist: NCI.current_series))
-    enqueue(MGMTMergerDebianFrameworks.new)
-    enqueue(MGMTAppstreamHealthJob.new(dist: NCI.current_series))
-    if NCI.future_series
-      # Add generator jobs as necessary here. Probably sound to start out
-      # with unstable first though.
-      enqueue(MGMTAppstreamHealthJob.new(dist: NCI.future_series))
-      enqueue(MGMTAppstreamGenerator.new(repo: 'unstable',
-                                         type: 'unstable',
-                                         dist: NCI.future_series))
-    end
+
+    ## MGMT jobs
     jeweller = enqueue(MGMTGitJewellerJob.new)
+    enqueue(MGMTMergerDebianFrameworks.new)
+    enqueue(MGMTDigitalOcean.new)
+    enqueue(MGMTDigitalOceanDangler.new)
     enqueue(MGMTDockerEphemerals.new)
+    enqueue(MGMTGitSemaphoreJob.new)
     enqueue(MGMTDockerPersistents.new)
     enqueue(MGMTDockerPersistentsCleanup.new)
     enqueue(MGMTDockerPersistentsDailyCleanup.new)
+    enqueue(MGMTJenkinsJobScorer.new)
     enqueue(MGMTJenkinsPruneParameterListJob.new)
     enqueue(MGMTJenkinsPruneOld.new)
-    enqueue(MGMTJenkinsJobScorer.new)
-    enqueue(MGMTGitSemaphoreJob.new)
     enqueue(MGMTJobUpdater.new)
-    enqueue(MGMTDigitalOcean.new)
-    enqueue(MGMTDigitalOceanDangler.new)
+    enqueue(MGMTRepoCleanupJob.new)
+    enqueue(MGMTRepoMetadataCheck.new(dependees: []))
     enqueue(MGMTSeedDeploy.new)
+    enqueue(MGMTToolingJob.new(downstreams: [], dependees: []))
+    enqueue(MGMTToolingPersistents.new)
+    enqueue(MGMTToolingEphemerals.new)
+    enqueue(MGMTToolingUpdateSubmodules.new)
+    enqueue(MGMTWorkspaceCleanerJob.new(dist: NCI.current_series))
 
+    ## Q&A jobs
     # This QA is only run for user edition, otherwise we'd end up in a nightmare
     # of which component is available in which edition but not the other.
     enqueue(MGMTAppstreamComponentsDuplicatesJob.new(type: 'user',
@@ -543,6 +445,15 @@ class ProjectUpdater < Jenkins::ProjectUpdater
     # drop legacy support when the time comes. At the time of writing both
     # things are highly coupled to their series, so treating them as something
     # generic is folly.
+    enqueue(MGMTAppstreamHealthJob.new(dist: NCI.current_series))
+    if NCI.future_series
+      # Add generator jobs as necessary here. Probably sound to start out
+      # with unstable first though.
+      enqueue(MGMTAppstreamHealthJob.new(dist: NCI.future_series))
+      enqueue(MGMTAppstreamGenerator.new(repo: 'unstable',
+                                         type: 'unstable',
+                                         dist: NCI.future_series))
+    end
 
     # In addition to type-dependent cnf jobs we create one for user edition itself. user repo isn't a type but
     # we want cnf data all the same. Limited to current series for no particular reason other than convenience (future
@@ -552,26 +463,31 @@ class ProjectUpdater < Jenkins::ProjectUpdater
     enqueue(MGTMCNFJob.new(type: 'release', dist: NCI.current_series, conten_push_repo_dir: 'user', name: 'user'))
 
     enqueue(MGMTSnapshotUser.new(dist: NCI.current_series, origin: 'release', target: 'user'))
+    enqueue(MGMTSnapshotTesting.new(dist: NCI.current_series, origin: 'stable', target: 'testing'))
     if NCI.future_series
       enqueue(MGMTSnapshotUser.new(dist: NCI.future_series, origin: 'release', target: 'user'))
+      enqueue(MGMTSnapshotTesting.new(dist: NCI.future_series, origin: 'stable', target: 'testing'))
     end
 
     enqueue(MGMTVersionListJob.new(dist: NCI.current_series, type: 'user', notify: true))
     enqueue(MGMTVersionListJob.new(dist: NCI.current_series, type: 'release'))
+    enqueue(MGMTVersionListJob.new(dist: NCI.current_series, type: 'testing'))
+    enqueue(MGMTVersionListJob.new(dist: NCI.current_series, type: 'stable'))
+    enqueue(MGMTVersionListJob.new(dist: NCI.current_series, type: 'unstable'))
     if NCI.future_series
       enqueue(MGMTVersionListJob.new(dist: NCI.future_series, type: 'user', notify: true))
       enqueue(MGMTVersionListJob.new(dist: NCI.future_series, type: 'release'))
+      enqueue(MGMTVersionListJob.new(dist: NCI.future_series, type: 'testing'))
+      enqueue(MGMTVersionListJob.new(dist: NCI.future_series, type: 'stable'))
+      enqueue(MGMTVersionListJob.new(dist: NCI.future_series, type: 'unstable'))
     end
+
     enqueue(MGMTFwupdCheckJob.new(dist: NCI.current_series, type: 'user', notify: true))
+    enqueue(MGMTFwupdCheckJob.new(dist: NCI.current_series, type: 'testing'))
     if NCI.future_series
       enqueue(MGMTFwupdCheckJob.new(dist: NCI.future_series, type: 'user', notify: true))
+      enqueue(MGMTFwupdCheckJob.new(dist: NCI.future_series, type: 'testing'))
     end
-    enqueue(MGMTToolingJob.new(downstreams: [],
-                               dependees: []))
-    enqueue(MGMTToolingPersistents.new)
-    enqueue(MGMTToolingEphemerals.new)
-    enqueue(MGMTToolingUpdateSubmodules.new)
-    enqueue(MGMTRepoCleanupJob.new)
   end
 end
 

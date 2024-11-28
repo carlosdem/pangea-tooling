@@ -20,7 +20,6 @@
 
 require 'logger'
 require 'logger/colors'
-require 'timeout'
 
 require_relative '../docker/network_patch'
 require_relative 'container/ephemeral'
@@ -135,11 +134,11 @@ module CI
     def chown_any_mapped(binds)
       # /a:/build gets split into /a we then 1:1 map this as /a upon chowning.
       # This allows us to hopefully reliably chown mapped bindings.
+      STDERR.puts '1 chown_any_mapped()'
       DirectBindingArray.to_volumes(binds).keys
     end
 
     def chown_handler
-      STDERR.puts 'Running chown handler'
       return @chown_handler if defined?(@chown_handler)
 
       binds_ = @binds.dup # Remove from object context so Proc can be a closure.
@@ -150,36 +149,19 @@ module CI
                                                 no_exit_handlers: true)
         chown_container.run(Cmd: %w[chown -R jenkins:jenkins] + binds_)
       end
+      return @chown_handler
     end
 
     def trap!
       TRAP_SIGNALS.each do |signal|
         previous = Signal.trap(signal, nil)
         Signal.trap(signal) do
-          STDERR.puts 'Running cleanup and handlers'
           cleanup
-          run_signal_handler(signal, chown_handler)
-          run_signal_handler(signal, previous)
+          chown_handler.call
+          Signal.trap(signal, previous || 'DEFAULT')
         end
       end
       @trap_run = true
-    end
-
-    def run_signal_handler(signal, handler)
-      if !handler || !handler.respond_to?(:call)
-        # Default traps are strings, we can't call them.
-        case handler
-        when 'IGNORE', 'SIG_IGN'
-          # Skip ignores, all others we want to raise.
-          return
-        end
-        handler = proc { raise SignalException, signal }
-      end
-      # Sometimes the chown handler gets stuck running chown_container.run
-      # so make sure to timeout whatever is going on and get everything murdered
-      Timeout.timeout(16) { handler.call }
-    rescue Timeout::Error => e
-      warn "Failed to run handler #{handler}, timed out. #{e}"
     end
 
     def rescued_start(c)
@@ -203,8 +185,10 @@ module CI
       cleanup
       return unless handle_exit?(no_exit_handlers)
 
-      # TODO: finalize object and clean up container
+      # TODO: finalize object and clean up container#
+      STDERR.puts 'init()'
       trap!
+      STDERR.puts 'init() done'
     end
 
     def handle_exit?(no_exit_handlers)
